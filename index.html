@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swap Redesign Concept</title>
+<style>
+  :root {
+    --bg: #0b0f14; --panel: #131a22; --panel-2: #1a232d; --line: #24303c;
+    --text: #e8eef4; --muted: #8a99a8; --accent: #c7f284; --accent-ink: #13200a;
+    --warn: #f5c451; --bad: #ff6b6b; --good: #5fd39a; --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.45 -apple-system, "Inter", "Segoe UI", Roboto, sans-serif; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  .top { display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .brand i { width: 26px; height: 26px; border-radius: 50%;
+    background: conic-gradient(from 200deg, var(--accent), #48c6c0, var(--accent)); }
+  .brand small { font-weight: 500; color: var(--muted); font-size: 12px; }
+  .wallet { border: 1px solid var(--line); background: var(--panel); border-radius: 999px;
+    padding: 8px 14px; font-size: 14px; }
+  main { display: grid; gap: 24px; padding: 20px 16px 40px; max-width: 1100px; margin: 0 auto; }
+  @media (min-width: 900px) {
+    main { grid-template-columns: 440px 1fr; align-items: start; padding-top: 40px; }
+  }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 24px;
+    padding: 16px; width: 100%; max-width: 440px; justify-self: center; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; align-items: center; }
+  .tab { background: none; border: 0; padding: 7px 12px; border-radius: 999px; color: var(--muted); }
+  .tab.on { background: var(--panel-2); color: var(--text); font-weight: 600; }
+  .protect { margin-left: auto; display: flex; align-items: center; gap: 6px; background: var(--panel-2);
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; font-size: 13px; }
+  .protect b { color: var(--good); font-weight: 600; }
+  .field { background: var(--panel-2); border-radius: var(--radius); padding: 14px; }
+  .field label { color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; }
+  .row { display: flex; align-items: center; gap: 10px; margin-top: 6px; min-width: 0; }
+  .amount { flex: 1; min-width: 0; font-size: 30px; font-weight: 600; background: none; border: 0;
+    color: var(--text); outline: none; width: 100%; }
+  .token { flex: none; display: flex; align-items: center; gap: 8px; background: var(--bg);
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px 6px 6px; font-weight: 600; }
+  .dot { width: 24px; height: 24px; border-radius: 50%; display: inline-block; }
+  .usdc { background: #2775ca; } .sol { background: linear-gradient(135deg,#9945ff,#14f195); }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; display: flex; justify-content: space-between; }
+  .flip { display: grid; place-items: center; margin: -10px auto; position: relative; z-index: 1;
+    width: 36px; height: 36px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+  .quote { margin-top: 12px; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+  .q { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
+  .q span:first-child { color: var(--muted); }
+  .q strong { font-weight: 600; }
+  .cta { width: 100%; margin-top: 14px; border: 0; border-radius: var(--radius); padding: 16px;
+    background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 17px; }
+  .cta.ghost { background: var(--panel-2); color: var(--text); }
+  .hint { color: var(--muted); font-size: 12px; text-align: center; margin-top: 8px; }
+  .pill { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px;
+    background: rgba(95,211,154,.12); color: var(--good); }
+  .pill.warn { background: rgba(245,196,81,.14); color: var(--warn); }
+
+  /* Sheets: bottom sheet on mobile, centered dialog on desktop */
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; z-index: 10; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); border-top-left-radius: 24px;
+    border-top-right-radius: 24px; border: 1px solid var(--line); padding: 18px 16px 24px; display: none; z-index: 11;
+    max-height: 90vh; overflow: auto; }
+  @media (min-width: 900px) {
+    .sheet { left: 50%; right: auto; bottom: auto; top: 50%; transform: translate(-50%,-50%);
+      width: 460px; border-radius: 24px; }
+  }
+  .show .scrim, .sheet.show { display: block; }
+  .sheet h3 { margin: 0 0 4px; font-size: 18px; }
+  .sheet p.lead { color: var(--muted); margin: 0 0 14px; font-size: 14px; }
+  .opt { display: block; width: 100%; text-align: left; background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; }
+  .opt.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .opt b { display: flex; justify-content: space-between; }
+  .opt span { color: var(--muted); font-size: 13px; }
+  details { background: var(--panel-2); border-radius: 16px; padding: 10px 14px; margin-top: 6px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+  .kv { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 10px; font-size: 14px; align-items: center; }
+  .kv small { color: var(--muted); display: block; font-size: 12px; }
+  .seg { display: flex; gap: 4px; }
+  .seg button { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 4px 8px; font-size: 13px; }
+  .seg .on { border-color: var(--accent); color: var(--accent); }
+  .status { text-align: center; padding: 8px 0; }
+  .status .icon { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center;
+    margin: 0 auto 10px; font-size: 26px; font-weight: 700; }
+  .status .icon.bad { background: rgba(255,107,107,.15); color: var(--bad); }
+  .status .icon.good { background: rgba(95,211,154,.15); color: var(--good); }
+  .why { text-align: left; background: var(--panel-2); border-radius: 16px; padding: 12px 14px; margin-top: 12px; font-size: 14px; }
+  .why b { display: block; margin-bottom: 4px; }
+
+  /* Right column: the design story (desktop only) */
+  .story { display: none; }
+  @media (min-width: 900px) { .story { display: block; } }
+  .story h1 { font-size: 26px; margin: 0 0 8px; }
+  .story p { color: var(--muted); margin: 0 0 18px; }
+  .story ol { padding-left: 18px; margin: 0; }
+  .story li { margin-bottom: 14px; }
+  .story li b { display: block; }
+  .story li span { color: var(--muted); font-size: 14px; }
+  .demo { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .demo button { background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; font-size: 13px; }
+  .note { color: var(--muted); font-size: 12px; text-align: center; padding: 0 16px 24px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><i></i>Swap <small>redesign concept</small></div>
+  <button class="wallet" id="walletBtn">Connect wallet</button>
+</header>
+
+<main>
+  <section class="card" aria-label="Swap">
+    <div class="tabs">
+      <button class="tab on">Swap</button><button class="tab">Limit</button><button class="tab">DCA</button>
+      <button class="protect" data-open="settings" aria-label="Swap protection settings">🛡 <b id="modeLabel">Auto</b></button>
+    </div>
+
+    <div class="field">
+      <label>You pay <span>Balance 1,250.00</span></label>
+      <div class="row">
+        <input class="amount" id="payAmt" inputmode="decimal" value="500" aria-label="Amount to pay">
+        <button class="token"><i class="dot usdc"></i>USDC ▾</button>
+      </div>
+      <div class="sub"><span id="payUsd">≈ $500.00</span><span><button class="pill" id="maxBtn" style="border:0">Max</button></span></div>
+    </div>
+
+    <button class="flip" aria-label="Flip tokens">⇅</button>
+
+    <div class="field">
+      <label>You get <span>Best of 4 routes</span></label>
+      <div class="row">
+        <div class="amount" id="getAmt">4.8013</div>
+        <button class="token"><i class="dot sol"></i>SOL ▾</button>
+      </div>
+      <div class="sub"><span id="getUsd">≈ $499.62</span><span class="pill">Price impact 0.04%</span></div>
+    </div>
+
+    <div class="quote" aria-label="Quote summary">
+      <div class="q"><span>You'll get at least</span><strong id="minOut">4.7773 SOL</strong></div>
+      <div class="q"><span>Rate</span><span>1 SOL = 104.13 USDC</span></div>
+      <div class="q"><span>Network + priority fee</span><span>~$0.004</span></div>
+      <div class="q"><span>Protection</span><span id="protLine">Auto · 0.5% slippage · MEV-safe</span></div>
+    </div>
+
+    <button class="cta" data-open="review" id="mainCta">Review swap</button>
+    <div class="hint">Quote refreshes every 10s. No wallet needed to see prices.</div>
+  </section>
+
+  <aside class="story">
+    <h1>Swapping, without the guesswork</h1>
+    <p>A concept redesign of the core swap flow in a Solana DEX aggregator. Three changes, each aimed at a reason people abandon or fail a swap.</p>
+    <ol>
+      <li><b>1 · A swap card that fits every screen</b><span>Mobile-first layout that never clips token buttons, shows a live quote before connecting a wallet, and states the guaranteed minimum in plain words.</span></li>
+      <li><b>2 · "Swap protection" instead of hidden jargon</b><span>Slippage, priority fee and MEV protection become three presets with one-line explanations. Experts still get every knob under "Custom".</span></li>
+      <li><b>3 · Failed swaps that explain themselves</b><span>When a swap fails, say why (price moved past your limit), confirm nothing was lost, and offer a one-tap retry with a safer setting.</span></li>
+    </ol>
+    <div class="demo" aria-label="Try the states">
+      <button data-open="settings">Open protection</button>
+      <button data-open="review">Review swap</button>
+      <button data-open="failed">Failed swap</button>
+      <button data-open="success">Success</button>
+    </div>
+  </aside>
+</main>
+<p class="note">Concept for a design bounty. Not affiliated with any app. Prices are illustrative.</p>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- Feature 2: Swap protection -->
+<section class="sheet" id="settings" role="dialog" aria-label="Swap protection">
+  <h3>Swap protection</h3>
+  <p class="lead">How much price movement you'll accept, and how hard we push your swap through.</p>
+  <button class="opt on" data-mode="Auto"><b>Auto <span class="pill">Recommended</span></b>
+    <span>We set slippage and fees from live market conditions. Best for most swaps.</span></button>
+  <button class="opt" data-mode="Safe"><b>Safe <span class="pill">Lowest risk</span></b>
+    <span>Tight 0.1% limit. Your swap may fail in fast markets, but you'll never get a worse price than shown.</span></button>
+  <button class="opt" data-mode="Custom"><b>Custom</b><span>Set every value yourself.</span></button>
+  <details id="custom">
+    <summary>Custom settings</summary>
+    <div class="kv">
+      <div>Max slippage<small>Swap cancels if the price moves more than this.</small></div>
+      <div class="seg"><button>0.1%</button><button class="on">0.5%</button><button>1%</button></div>
+      <div>Priority fee<small>Higher = confirms faster when the network is busy.</small></div>
+      <div class="seg"><button>Normal</button><button class="on">Fast</button><button>Turbo</button></div>
+      <div>MEV protection<small>Hides your swap from front-running bots.</small></div>
+      <div class="seg"><button class="on">On</button><button>Off</button></div>
+      <div>Faster transactions<small>Uses the newer transaction format. Leave on unless your wallet has issues.</small></div>
+      <div class="seg"><button class="on">On</button><button>Off</button></div>
+    </div>
+  </details>
+  <button class="cta" data-close>Done</button>
+</section>
+
+<!-- Review -->
+<section class="sheet" id="review" role="dialog" aria-label="Review swap">
+  <h3>Review swap</h3>
+  <p class="lead">Check the numbers. Nothing happens until you confirm in your wallet.</p>
+  <div class="quote">
+    <div class="q"><span>You pay</span><strong>500 USDC</strong></div>
+    <div class="q"><span>You get (estimated)</span><strong>4.8013 SOL</strong></div>
+    <div class="q"><span>Guaranteed minimum</span><strong>4.7773 SOL</strong></div>
+    <div class="q"><span>Route</span><span>USDC → SOL via 2 pools</span></div>
+    <div class="q"><span>Total fees</span><span>~$0.004</span></div>
+    <div class="q"><span>Protection</span><span class="pill">Auto · MEV-protected</span></div>
+  </div>
+  <button class="cta" data-open="failed">Confirm in wallet</button>
+  <button class="cta ghost" data-close>Back</button>
+</section>
+
+<!-- Feature 3: Failed swap recovery -->
+<section class="sheet" id="failed" role="dialog" aria-label="Swap failed">
+  <div class="status">
+    <div class="icon bad">!</div>
+    <h3>Swap didn't go through</h3>
+    <p class="lead">Your 500 USDC is safe. Only the network fee (~$0.0002) was used.</p>
+  </div>
+  <div class="why"><b>Why it failed</b>SOL's price moved 0.7% while your swap was confirming, which is more than your 0.5% limit. This protected you from a worse price.</div>
+  <div class="why"><b>Suggested fix</b>Retry with a 1% limit and Fast priority. You'd get at least <b style="display:inline">4.7533 SOL</b>.</div>
+  <button class="cta" data-open="success">Retry with 1% limit</button>
+  <button class="cta ghost" data-close>Keep my settings</button>
+</section>
+
+<!-- Success -->
+<section class="sheet" id="success" role="dialog" aria-label="Swap complete">
+  <div class="status">
+    <div class="icon good">✓</div>
+    <h3>Swapped 500 USDC for 4.7981 SOL</h3>
+    <p class="lead">Confirmed in 1.2s. You got 0.44% more than the guaranteed minimum.</p>
+  </div>
+  <div class="quote">
+    <div class="q"><span>Rate</span><span>1 SOL = 104.21 USDC</span></div>
+    <div class="q"><span>Fees paid</span><span>$0.004</span></div>
+  </div>
+  <button class="cta" data-close>Done</button>
+  <button class="cta ghost" data-close>View transaction</button>
+</section>
+
+<script>
+  const RATE = 104.13;
+  const slip = { Auto: 0.005, Safe: 0.001, Custom: 0.005 };
+  let mode = 'Auto';
+  const $ = (s) => document.querySelector(s);
+
+  function recalc() {
+    const pay = parseFloat($('#payAmt').value.replace(/,/g, '')) || 0;
+    const out = pay / RATE;
+    $('#getAmt').textContent = out ? out.toFixed(4) : '0';
+    $('#payUsd').textContent = '≈ $' + pay.toFixed(2);
+    $('#getUsd').textContent = '≈ $' + (out * RATE * 0.99924).toFixed(2);
+    $('#minOut').textContent = (out * (1 - slip[mode])).toFixed(4) + ' SOL';
+    const pct = (slip[mode] * 100).toFixed(1).replace('.0', '') + '%';
+    $('#protLine').textContent = mode + ' · ' + pct + ' slippage · MEV-safe';
+    $('#modeLabel').textContent = mode;
+    $('#mainCta').disabled = !pay;
+  }
+
+  function open(id) {
+    document.querySelectorAll('.sheet').forEach((s) => s.classList.remove('show'));
+    document.body.classList.add('show');
+    $('#' + id).classList.add('show');
+    history.replaceState(null, '', '#' + id);
+  }
+  function close() {
+    document.querySelectorAll('.sheet').forEach((s) => s.classList.remove('show'));
+    document.body.classList.remove('show');
+    history.replaceState(null, '', location.pathname);
+  }
+
+  document.addEventListener('click', (e) => {
+    const o = e.target.closest('[data-open]');
+    if (o) { open(o.dataset.open); return; }
+    if (e.target.closest('[data-close]') || e.target.id === 'scrim') { close(); return; }
+    const m = e.target.closest('[data-mode]');
+    if (m) {
+      mode = m.dataset.mode;
+      document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', b === m));
+      $('#custom').open = mode === 'Custom';
+      recalc();
+    }
+    const seg = e.target.closest('.seg button');
+    if (seg) seg.parentElement.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === seg));
+  });
+  $('#payAmt').addEventListener('input', recalc);
+  $('#maxBtn').addEventListener('click', () => { $('#payAmt').value = '1250'; recalc(); });
+  $('#walletBtn').addEventListener('click', (e) => { e.target.textContent = '7xK…9fQ'; });
+
+  recalc();
+  if (location.hash.length > 1 && document.getElementById(location.hash.slice(1))) open(location.hash.slice(1));
+</script>
+</body>
+</html>
